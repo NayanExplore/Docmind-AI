@@ -42,12 +42,54 @@ public class ProjectConfig {
             @Override
             public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
                 if (bean instanceof com.zaxxer.hikari.HikariDataSource ds) {
-                    String url = ds.getJdbcUrl();
-                    if (url != null) {
-                        if (url.startsWith("postgres://")) {
-                            ds.setJdbcUrl("jdbc:postgresql://" + url.substring("postgres://".length()));
-                        } else if (url.startsWith("postgresql://")) {
-                            ds.setJdbcUrl("jdbc:postgresql://" + url.substring("postgresql://".length()));
+                    String rawUrl = ds.getJdbcUrl();
+                    if (rawUrl != null) {
+                        try {
+                            String url = rawUrl.trim();
+                            if (url.startsWith("jdbc:")) {
+                                url = url.substring(5);
+                            }
+                            if (url.startsWith("postgres://")) {
+                                url = "postgresql://" + url.substring(11);
+                            }
+                            if (url.startsWith("postgresql://")) {
+                                java.net.URI uri = java.net.URI.create(url);
+                                String userInfo = uri.getUserInfo();
+                                if (userInfo != null && !userInfo.isEmpty()) {
+                                    String[] parts = userInfo.split(":", 2);
+                                    if (parts.length > 0 && !parts[0].isEmpty()) {
+                                        ds.setUsername(parts[0]);
+                                    }
+                                    if (parts.length > 1 && !parts[1].isEmpty()) {
+                                        ds.setPassword(parts[1]);
+                                    }
+                                }
+                                String host = uri.getHost();
+                                int port = uri.getPort();
+                                String path = uri.getPath();
+                                String query = uri.getQuery();
+                                if (query != null) {
+                                    query = query.replaceAll("(?i)&?channel_binding=[^&]*", "");
+                                    if (query.startsWith("&")) {
+                                        query = query.substring(1);
+                                    }
+                                    if (query.isEmpty()) {
+                                        query = "sslmode=require";
+                                    }
+                                } else {
+                                    query = "sslmode=require";
+                                }
+                                StringBuilder cleanJdbc = new StringBuilder("jdbc:postgresql://").append(host);
+                                if (port > 0) {
+                                    cleanJdbc.append(":").append(port);
+                                }
+                                cleanJdbc.append(path).append("?").append(query);
+                                ds.setJdbcUrl(cleanJdbc.toString());
+                            } else if (!rawUrl.startsWith("jdbc:")) {
+                                ds.setJdbcUrl("jdbc:" + rawUrl);
+                            }
+                        } catch (Exception e) {
+                            log.warn("Failed to sanitize JDBC URL {}: {}", rawUrl, e.getMessage());
                         }
                     }
                 }
