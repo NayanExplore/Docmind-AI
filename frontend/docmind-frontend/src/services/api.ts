@@ -10,8 +10,11 @@ import type {
 } from '../types';
 import { useAuthStore } from '../store/authStore';
 
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+export const API_BASE_URL = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -118,7 +121,7 @@ export const chatApi = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch('/api/v1/chat/stream', {
+    const response = await fetch(`${API_BASE_URL}/chat/stream`, {
       method: 'POST',
       headers,
       body: JSON.stringify(request),
