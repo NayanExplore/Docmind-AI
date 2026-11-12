@@ -94,6 +94,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGeneric(Exception ex) {
+        String className = ex.getClass().getName();
+        if (className.contains("AsyncRequestNotUsableException")
+                || className.contains("ClientAbortException")
+                || className.contains("AsyncRequestTimeoutException")
+                || (ex.getMessage() != null && (ex.getMessage().contains("Broken pipe") || ex.getMessage().contains("connection was aborted")))) {
+            logger.debug("Client disconnected from streaming connection: {}", ex.getMessage());
+            return null;
+        }
+
         logger.error("Unexpected error occurred: ", ex);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -105,8 +114,6 @@ public class GlobalExceptionHandler {
                                 .timestamp(LocalDateTime.now())
                                 .build()
                 );
-
-
     }
 
 }
