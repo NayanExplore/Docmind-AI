@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@rolldown/binding-win32-x64-msvc": "^1.2.5",
     "@types/prismjs": "^1.26.6",
     "axios": "^1.19.0",
     "clsx": "^2.1.1",
