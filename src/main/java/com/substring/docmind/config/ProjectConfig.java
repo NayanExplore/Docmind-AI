@@ -21,6 +21,8 @@ import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.openai.http.okhttp.OpenAiHttpClientBuilderCustomizer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ui.ModelMap;
@@ -33,6 +35,26 @@ import java.sql.Statement;
 @Slf4j
 @Configuration
 public class ProjectConfig {
+
+    @Bean
+    public static BeanPostProcessor hikariDataSourcePostProcessor() {
+        return new BeanPostProcessor() {
+            @Override
+            public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+                if (bean instanceof com.zaxxer.hikari.HikariDataSource ds) {
+                    String url = ds.getJdbcUrl();
+                    if (url != null) {
+                        if (url.startsWith("postgres://")) {
+                            ds.setJdbcUrl("jdbc:postgresql://" + url.substring("postgres://".length()));
+                        } else if (url.startsWith("postgresql://")) {
+                            ds.setJdbcUrl("jdbc:postgresql://" + url.substring("postgresql://".length()));
+                        }
+                    }
+                }
+                return bean;
+            }
+        };
+    }
 
     @Bean
     public ChatClient chatClient(ChatClient.Builder builder, ChatMemory memory) {
