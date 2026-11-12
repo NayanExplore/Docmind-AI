@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -37,6 +38,7 @@ public class RagService {
     private final ChatClient chatClient;
 
     private final ConversationRepository conversationRepository;
+    private final ChatMemory chatMemory;
 
 
     //to ask any thing related to document
@@ -74,6 +76,7 @@ public class RagService {
                 .prompt()
                 .system(s -> s.param("doc_context", contextText))
                 .user(request.getQuestion())
+                .advisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .call().content();
         long responseTime = System.currentTimeMillis() - startTime;
@@ -119,9 +122,8 @@ public class RagService {
         String contextText = buildContextString(relevantDocuments);
 //        String userPrompt = buildPrompt(requestDto.getQuestion(), contextText);
         return chatClient.prompt()
-                .system(s-> s.param("doc_context",contextText))
+                .system(s -> s.param("doc_context", contextText))
                 .user(requestDto.getQuestion())
-                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, requestDto.getConversationId()))
                 .stream()
                 .content()
                 .onErrorResume(e -> {

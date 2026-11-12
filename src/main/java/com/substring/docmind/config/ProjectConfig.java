@@ -121,7 +121,7 @@ public class ProjectConfig {
 
 
                                 """)
-                .defaultAdvisors(new SimpleLoggerAdvisor(), MessageChatMemoryAdvisor.builder(memory).build())
+                .defaultAdvisors(new SimpleLoggerAdvisor())
                 .build();
     }
 
