@@ -70,7 +70,7 @@ app:
 
 jwt:
   secret: ${JWT_SECRET:sdafasfasfasdhfojhascapfdaDHAfbashfabfashfasbfshfdasfhqf}
-  expiration: 3600000
+  expiration: ${JWT_EXPIRATION:604800000}
 
 
 bootui:

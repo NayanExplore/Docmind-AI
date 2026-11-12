@@ -124,6 +124,10 @@ public class RagService {
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, requestDto.getConversationId()))
                 .stream()
                 .content()
+                .onErrorResume(e -> {
+                    log.warn("Streaming finished with notice: {}", e.getMessage());
+                    return Flux.empty();
+                })
                 .concatWith(Flux.just("[DONE]"));
 
 
