@@ -81,10 +81,17 @@ const SkeletonDoc: React.FC = () => (
 );
 
 const DocumentItem: React.FC<{ doc: DocumentMetadataDto }> = ({ doc }) => {
-  const { selectedDocumentId, setSelectedDocumentId, deleteDocument } = useDocumentStore();
+  const { selectedDocumentId, setSelectedDocumentId, deleteDocument, setIsSidebarOpen } = useDocumentStore();
   const [expanded, setExpanded] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isSelected = selectedDocumentId === doc.id;
+
+  const handleSelect = () => {
+    setSelectedDocumentId(isSelected ? null : doc.id);
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+  };
 
   const handleDelete = () => {
     if (confirmDelete) {
@@ -113,7 +120,7 @@ const DocumentItem: React.FC<{ doc: DocumentMetadataDto }> = ({ doc }) => {
       {/* Main row */}
       <div
         className="flex items-start gap-2.5 p-3 cursor-pointer select-none"
-        onClick={() => setSelectedDocumentId(isSelected ? null : doc.id)}
+        onClick={handleSelect}
       >
         <div className={clsx(
           'p-1.5 rounded-lg flex-shrink-0 mt-0.5 transition-colors',
@@ -306,7 +313,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onUploadClick }) => {
             {/* Upload CTA */}
             <div className="p-3 border-b border-slate-800 flex-shrink-0">
               <button
-                onClick={onUploadClick}
+                onClick={() => {
+                  onUploadClick();
+                  if (window.innerWidth < 768) setIsSidebarOpen(false);
+                }}
                 aria-label="Upload documents"
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white text-xs sm:text-sm font-medium rounded-xl transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
@@ -352,7 +362,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onUploadClick }) => {
                     Upload PDF, DOCX, TXT, MD or CSV files to get started
                   </p>
                   <button
-                    onClick={onUploadClick}
+                    onClick={() => {
+                      onUploadClick();
+                      if (window.innerWidth < 768) setIsSidebarOpen(false);
+                    }}
                     className="mt-3 text-xs text-indigo-400 hover:text-indigo-300 font-medium underline underline-offset-4 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
                   >
                     Upload first document &rarr;

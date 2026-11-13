@@ -21,12 +21,14 @@ interface DocumentState {
   reset: () => void;
 }
 
+const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 768 : true;
+
 const initialState = {
   documents: [] as DocumentMetadataDto[],
   selectedDocumentId: null as string | null,
   isLoadingDocuments: false,
   activeTab: 'chat' as const,
-  isSidebarOpen: true,
+  isSidebarOpen: isDesktop,
   isBackendAwake: false,
 };
 
@@ -57,7 +59,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     const intervalId = setInterval(async () => {
       const { documents } = get();
       const hasProcessing = documents.some(
-        (d) => d.status === 'PROCESSING' || d.status === 'processing'
+        (d) => d.status === 'PROCESSING' || d.status === 'UPLOADING'
       );
       if (!hasProcessing) {
         clearInterval(intervalId);
@@ -68,7 +70,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         if (resp.success) {
           set({ documents: resp.data });
           const stillProcessing = resp.data.some(
-            (d) => d.status === 'PROCESSING' || d.status === 'processing'
+            (d) => d.status === 'PROCESSING' || d.status === 'UPLOADING'
           );
           if (!stillProcessing) {
             clearInterval(intervalId);

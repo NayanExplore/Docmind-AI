@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { documentApi } from '../services/api';
 import { useDocumentStore } from '../store/documentStore';
+import type { UploadingFile } from '../types';
 import toast from 'react-hot-toast';
 import { clsx } from 'clsx';
 

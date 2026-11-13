@@ -15,23 +15,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import { useDocumentStore } from './store/documentStore';
-import { useConversationStore } from './store/conversationStore';
-import { useAuthStore } from './store/authStore';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
-import ChatView from './components/ChatView';
-import SearchView from './components/SearchView';
-import ChunksView from './components/ChunksView';
-import UploadDialog from './components/UploadDialog';
-import ProtectedRoute from './components/ProtectedRoute';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import Login from './pages/Login';
-import Register from './pages/Register';
-
 // Cold-start banner: shown while backend is waking up (Render free tier)
 const ColdStartBanner: React.FC<{ visible: boolean }> = ({ visible }) => {
   if (!visible) return null;
@@ -72,6 +55,17 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (isBackendAwake) setShowColdStartBanner(false);
   }, [isBackendAwake]);
+
+  // Collapse sidebar on small screens or resize to mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768 && useDocumentStore.getState().isSidebarOpen) {
+        useDocumentStore.getState().setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#0f172a]">

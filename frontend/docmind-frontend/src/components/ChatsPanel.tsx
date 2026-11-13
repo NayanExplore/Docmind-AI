@@ -217,17 +217,23 @@ export const ChatsPanel: React.FC = () => {
     deleteChat,
     renameChat,
   } = useConversationStore();
-  const { setActiveTab } = useDocumentStore();
+  const { setActiveTab, setIsSidebarOpen } = useDocumentStore();
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleNewChat = () => {
     newChat();
     setActiveTab('chat');
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
   };
 
   const handleSelectChat = (id: string) => {
     selectChat(id);
     setActiveTab('chat');
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
   };
 
   // Filter conversations

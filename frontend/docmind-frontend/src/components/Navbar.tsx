@@ -51,7 +51,7 @@ const Navbar: React.FC<NavbarProps> = ({ onUploadClick }) => {
   return (
     <header className="flex items-center h-14 px-4 bg-[#111827] border-b border-[#1e293b] flex-shrink-0 z-20">
       {/* Left: sidebar toggle + logo */}
-      <div className="flex items-center gap-3 w-64 flex-shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="p-1.5 hover:bg-[#1e293b] rounded-lg transition-colors group cursor-pointer"
@@ -93,7 +93,7 @@ const Navbar: React.FC<NavbarProps> = ({ onUploadClick }) => {
       </nav>
 
       {/* Right: document context + upload + user menu */}
-      <div className="flex items-center gap-2.5 justify-end w-auto min-w-[260px]">
+      <div className="flex items-center gap-2 sm:gap-2.5 justify-end w-auto">
         {selectedDoc && (
           <div className="hidden lg:flex items-center gap-1.5 bg-[#1e293b] border border-[#334155] px-2.5 py-1.5 rounded-lg max-w-[150px]">
             <FileText className="w-3 h-3 text-indigo-400 flex-shrink-0" />
