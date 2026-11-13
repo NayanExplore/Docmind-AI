@@ -69,8 +69,8 @@ const Register: React.FC = () => {
     setLoading(true);
     try {
       await register(username.trim(), email.trim(), password);
-      toast.success('Account created successfully! Logging you in…');
       await login(username.trim(), password);
+      toast.success('Account created successfully! Welcome to DocMind 🎉');
       navigate('/', { replace: true });
     } catch (err: unknown) {
       const errorMsg =

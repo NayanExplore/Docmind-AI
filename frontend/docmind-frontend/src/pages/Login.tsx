@@ -87,6 +87,11 @@ const Login: React.FC = () => {
             create a new account
           </Link>
         </p>
+        {/* Demo credentials hint */}
+        <div className="mt-3 flex items-center justify-center gap-2 text-xs text-slate-500 bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-2">
+          <span className="text-indigo-400">💡</span>
+          <span>Sign in with your <strong className="text-slate-300">username</strong> (not email)</span>
+        </div>
       </motion.div>
 
       <motion.div

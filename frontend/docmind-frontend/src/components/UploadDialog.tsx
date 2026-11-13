@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { documentApi } from '../services/api';
 import { useDocumentStore } from '../store/documentStore';
-import type { UploadingFile } from '../types';
 import toast from 'react-hot-toast';
 import { clsx } from 'clsx';
 
@@ -22,6 +21,8 @@ const ACCEPTED_TYPES: Record<string, string[]> = {
   'text/markdown': ['.md'],
   'text/csv': ['.csv'],
 };
+
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -41,9 +42,19 @@ function getFileIcon(name: string) {
 const UploadDialog: React.FC<UploadDialogProps> = ({ isOpen, onClose }) => {
   const [files, setFiles] = useState<UploadingFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const { fetchDocuments } = useDocumentStore();
+  const { fetchDocuments, pollDocumentsUntilIndexed } = useDocumentStore();
 
-  const onDrop = useCallback((accepted: File[]) => {
+  const onDrop = useCallback((accepted: File[], rejected: import('react-dropzone').FileRejection[]) => {
+    // Show errors for rejected files (e.g. too large or wrong type)
+    rejected.forEach(({ file, errors }) => {
+      errors.forEach((e) => {
+        if (e.code === 'file-too-large') {
+          toast.error(`"${file.name}" exceeds the 25 MB limit`);
+        } else if (e.code === 'file-invalid-type') {
+          toast.error(`"${file.name}" is not a supported file type`);
+        }
+      });
+    });
     const newFiles: UploadingFile[] = accepted.map((f) => ({
       id: crypto.randomUUID(),
       file: f,
@@ -57,6 +68,7 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ isOpen, onClose }) => {
     onDrop,
     accept: ACCEPTED_TYPES,
     multiple: true,
+    maxSize: MAX_FILE_SIZE,
   });
 
   const removeFile = (id: string) => {
@@ -67,6 +79,9 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ isOpen, onClose }) => {
     const pending = files.filter((f) => f.status === 'pending');
     if (pending.length === 0) return;
     setIsUploading(true);
+
+    // Track results of only this batch
+    let batchSuccessCount = 0;
 
     await Promise.all(
       pending.map(async (uf) => {
@@ -80,6 +95,7 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ isOpen, onClose }) => {
               f.id === uf.id ? { ...f, status: 'done', progress: 100, result: res.data } : f
             )
           );
+          batchSuccessCount++;
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : 'Upload failed';
           setFiles((prev) => prev.map((f) => (f.id === uf.id ? { ...f, status: 'error', error: msg } : f)));
@@ -89,8 +105,11 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ isOpen, onClose }) => {
 
     setIsUploading(false);
     await fetchDocuments();
-    const successCount = files.filter((f) => f.status !== 'error').length;
-    if (successCount > 0) toast.success(`${successCount} document(s) uploaded & indexed`);
+    if (batchSuccessCount > 0) {
+      toast.success(`${batchSuccessCount} document(s) uploaded & indexed`);
+      // Auto-poll until all documents are INDEXED
+      pollDocumentsUntilIndexed();
+    }
   };
 
   const handleClose = () => {

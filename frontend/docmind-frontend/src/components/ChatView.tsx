@@ -537,7 +537,7 @@ const ChatView: React.FC = () => {
 
             for (const line of lines) {
               if (line.startsWith('data:')) {
-                const data = line.slice(5);
+                const data = line.slice(5).trimStart();
                 dataLines.push(data);
               }
             }
